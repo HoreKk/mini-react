@@ -1,7 +1,7 @@
 import './style.css'
 import React from './src/React/React'
 
-console.log(React.createElement('div', null, [React.createElement('div', null, [React.createElement('h1', null, ['test'])])]));
+console.log(React.createElement('div', null, React.createElement('h1', null, "test", React.createElement('div', null, null))));
 import { Router } from './src/router.js'
 
 const routes = [
