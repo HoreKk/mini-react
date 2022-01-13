@@ -21,6 +21,12 @@ export class Router {
       } else {
         rootElem.appendChild(route.component);
       }
+
+      Array.from(document.getElementsByClassName('nav-link')).forEach(navItem => {
+        navItem.getAttribute('href') === `#${this.currentHash}`
+          ? navItem.classList.add('active')
+          : navItem.classList.remove('active')
+      });
     } else {
       rootElem.innerHTML = "404";
     }
