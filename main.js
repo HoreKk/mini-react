@@ -3,11 +3,12 @@ import React from './src/React/React'
 
 console.log(React.createElement('div', null, [React.createElement('div', null, [React.createElement('h1', null, ['test'])])]));
 import { Router } from './src/router.js'
+import { RouterError } from './src/React/exceptions/RouterError';
 
 const routes = [
   {
     hash: '',
-    component: Page1()
+    component: Page1(),
   },
   {
     hash: 'about',
