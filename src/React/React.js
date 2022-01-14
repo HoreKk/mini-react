@@ -18,7 +18,7 @@ export default class React {
         ...props,
         children: children.map((child) =>
           typeof child === 'string'
-            ? { type: 'STRING_TYPE', props: { nodeTextValue: child, children: [] } }
+            ? { type: 'STRING_TYPE', props: { nodeTextValue: child,...props, children: [] } }
             : child
         ),
       }
@@ -36,13 +36,31 @@ export default class React {
 
   static #recursiveRender(element, domElement) {
     const node = element.type === 'STRING_TYPE'
-      ? document.createTextNode(element.props.nodeTextValue)
+      ? document.createTextNode(this.#parseNodeTextValue(element.props))
       : document.createElement(element.type);
     
     element.props.children.forEach(child => {
        this.#recursiveRender(child, node);
     });
     domElement.appendChild(node);
+  }
+
+  /**
+   * @param {string} text 
+   * @param {Object} props 
+   */
+  static #parseNodeTextValue(props) {
+    const text = String(props.nodeTextValue);
+    let splitText = text.trim().split(' ');
+    splitText = splitText.map((elem) => {
+      if (elem.match(/\{\{(.+?)\}\}/g)) {
+        console.log(elem);
+        return props[elem.replace('{{', '').replace('}}', '').split('.')[1]] || '';
+      }
+      return elem;
+    })
+
+    return splitText.join(' ');
   }
 
   /**
