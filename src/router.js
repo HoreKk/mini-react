@@ -20,29 +20,17 @@ export class Router {
   render() {
     const route = this.routes.find(route => route.hash === this.currentHash);
     if (route) {
-<<<<<<< HEAD
       React.renderDom(rootElem, route.component);
-=======
-      if (rootElem.childNodes.length) {
-        rootElem.replaceChild(route.component, rootElem.childNodes[0]);
-      } else {
-        rootElem.appendChild(route.component);
-      }
 
       Array.from(document.getElementsByClassName('nav-link')).forEach(navItem => {
         navItem.getAttribute('href') === `#${this.currentHash}`
           ? navItem.classList.add('active')
           : navItem.classList.remove('active')
       });
->>>>>>> dcd1d199df737a13adf6ebeb9294b2968d797a31
     } else {
       rootElem.innerHTML = "404";
     }
   }
-<<<<<<< HEAD
-}
-
-=======
 
   _checkRoutes(routes) {
     routes.forEach(route => {
@@ -58,4 +46,3 @@ export class Router {
     })
   }
 }
->>>>>>> dcd1d199df737a13adf6ebeb9294b2968d797a31
