@@ -20,8 +20,7 @@ export class Router {
   render() {
     const route = this.routes.find(route => route.hash === this.currentHash);
     if (route) {
-      React.renderDom(rootElem, route.component);
-
+      React.renderDom(React.createElement(route.component), rootElem);
       Array.from(document.getElementsByClassName('nav-link')).forEach(navItem => {
         navItem.getAttribute('href') === `#${this.currentHash}`
           ? navItem.classList.add('active')
