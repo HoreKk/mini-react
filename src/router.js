@@ -1,5 +1,6 @@
-const rootElem = document.getElementById("root");
+import React from "./React/React";
 
+const rootElem = document.getElementById("root");
 export class Router {
   constructor(routes) {
     this.routes = routes;
@@ -16,13 +17,10 @@ export class Router {
     const route = this.routes.find(route => route.hash === this.currentUrl);
     console.log(location)
     if (route) {
-      if (rootElem.childNodes.length) {
-        rootElem.replaceChild(route.component, rootElem.childNodes[0]);
-      } else {
-        rootElem.appendChild(route.component);
-      }
+      React.renderDom(rootElem, route.component);
     } else {
       rootElem.innerHTML = "404";
     }
   }
 }
+

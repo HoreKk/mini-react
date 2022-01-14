@@ -1,32 +1,34 @@
 import './style.css'
 import React from './src/React/React'
 
-console.log(React.createElement('div', null, React.createElement('h1', null, "test", React.createElement('div', null, null))));
 import { Router } from './src/router.js'
+
+class Page1 {
+  static render() {
+    return React.createElement('h1', null, 'Page Home'); 
+  }
+}
+
+class Page2 {
+  static render() {
+    return React.createElement('h1', null, 'Page About'); 
+  }
+}
 
 const routes = [
   {
     hash: '',
-    component: Page1()
+    component: Page1.render()
   },
   {
     hash: 'about',
-    component: Page2()
+    component: Page2.render()
   }
 ]
+console.log(React.createElement('h1', null, 'Page Home')); 
 
 new Router(routes)
 
-function Page1() {
-  const h1 = document.createElement("h1");
-  const text = document.createTextNode("Page Home");
-  h1.appendChild(text);
-  return h1;
-}
 
-function Page2() {
-  const h1 = document.createElement("h1");
-  const text = document.createTextNode("Page About");
-  h1.appendChild(text);
-  return h1;
-}
+
+
