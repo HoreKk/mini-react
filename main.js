@@ -1,8 +1,8 @@
 import './style.css'
 import React from './src/React/React'
+import Component from './src/React/Component';
 
 import { Router } from './src/router.js'
-import { RouterError } from './src/React/exceptions/RouterError';
 
 class Page1 {
   static render() {
@@ -26,6 +26,5 @@ const routes = [
     component: Page2.render()
   }
 ]
-console.log(React.createElement('h1', null, 'Page Home')); 
 
 new Router(routes)

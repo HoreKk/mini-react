@@ -1,21 +1,28 @@
-class Component {
-  currentProps = [];
+export default class Component {
+  currentProps = {};
 
-  display(newProps) {
-    if (shouldUpdate(newProps)) {
-      return this.render()
+  constructor(props) {
+    this.currentProps = props;
+    if (this.constructor === Component) {
+        throw new Error("Can't instantiate Component.");
     }
   }
 
-  shouldUpdate(newProps, currentProps) {
-    return newProps !== currentProps;
+  display(newProps) {
+    if (this.shouldUpdate(newProps)) {
+      return this.render();
+    }
+  }
+
+  shouldUpdate(newProps) {
+    if(JSON.stringify(newProps) !== JSON.stringify(this.currentProps)) {
+        this.currentProps = newProps;
+        return true;
+    }
+    return false;
   }
   
-  render() {}
-}
-
-class Home extends Component {
   render() {
-    return React.createElement('div', null, Component, 'test');
+    throw new Error("render() need to be implemented");
   }
 }

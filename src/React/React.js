@@ -34,7 +34,6 @@ export default class React {
       rootElem.appendChild(text);
     }
     else {
-      console.log(rootElem, renderElem)
       const root = document.createElement(renderElem.type);
       renderElem.children && renderElem.children.forEach(element => {
         this.renderDom(root, element);
