@@ -1,9 +1,9 @@
 import './style.css'
 import React from './src/React/React'
+import Component from './src/React/Component';
 
 import Component from './src/React/Component';
 import { Router } from './src/router.js'
-import { RouterError } from './src/React/exceptions/RouterError';
 
 class Page1 extends Component {
   display() {

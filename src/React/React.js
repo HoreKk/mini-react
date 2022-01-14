@@ -1,6 +1,3 @@
-import isElementValid from "./helpers/domElement"
-import type_check from "./helpers/typecheck"
-
 export default class React {
   currentTree = {};
 
