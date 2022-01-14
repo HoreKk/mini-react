@@ -29,7 +29,3 @@ const routes = [
 console.log(React.createElement('h1', null, 'Page Home')); 
 
 new Router(routes)
-
-
-
-

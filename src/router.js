@@ -1,15 +1,10 @@
-<<<<<<< HEAD
 import React from "./React/React";
-
-const rootElem = document.getElementById("root");
-=======
 import { RouterError } from './React/exceptions/RouterError';
 
 const rootElem = document.getElementById("root");
 
 const routeProperties = ['hash', 'component']
 
->>>>>>> dcd1d199df737a13adf6ebeb9294b2968d797a31
 export class Router {
   constructor(routes) {
     this._checkRoutes(routes)
