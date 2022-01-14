@@ -1,31 +1,30 @@
 import './style.css'
 import React from './src/React/React'
 
+import Component from './src/React/Component';
 import { Router } from './src/router.js'
 import { RouterError } from './src/React/exceptions/RouterError';
 
-class Page1 {
-  static render() {
+class Page1 extends Component {
+  display() {
     return React.createElement('h1', null, 'Page Home'); 
   }
 }
-
-class Page2 {
-  static render() {
-    return React.createElement('h1', null, 'Page About'); 
+class Page2 extends Component{
+  display() {
+    return React.createElement('div', null, React.createElement('h1', null, 'Page About'), React.createElement('p', null, 'Ceci est un texte about'))
   }
 }
 
 const routes = [
   {
     hash: '',
-    component: Page1.render()
+    component: Page1
   },
   {
     hash: 'about',
-    component: Page2.render()
+    component: Page2
   }
 ]
-console.log(React.createElement('h1', null, 'Page Home')); 
 
 new Router(routes)
