@@ -1,16 +1,23 @@
 import './style.css'
-import React from './src/React/React'
-import Component from './src/React/Component';
+import React, {Component} from './src/React/React'
 
 import { Router } from './src/router.js'
 
 class Page1 extends Component {
-  display() {
-    return React.createElement('h1', {title: 'Titre Interpolé'}, 'Page Home {{props.title}} {{testaaa}}'); 
+  state = {
+    title: 'test'
+  } 
+  render() {
+    return React.createElement('div', null,
+      React.createElement('h1', null, 'Page Home {{this.state.title}} {{testaaa}}'),
+      React.createElement('button', { onSubmit: () => this.props.tilte = 'Update', title: this.state.title }, 'changer le titre'),
+      React.createElement('div', null,
+        React.createElement('p',null, "une ligne"), 
+        React.createElement('p',null, "une ligne"))); 
   }
 }
 class Page2 extends Component{
-  display() {
+  render() {
     return React.createElement('div', null, React.createElement('h1', null, 'Page About'), React.createElement('p', null, 'Ceci est un texte about'))
   }
 }
