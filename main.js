@@ -4,15 +4,23 @@ import React, {Component} from './src/React/React'
 import { Router } from './src/router.js'
 
 class Page1 extends Component {
-  state = {
-    title: 'test'
-  } 
+
+  constructor(props) {
+    super(props);
+    this.state = {number: 10};
+  }
+
   render() {
+    console.log(this.state)
     return React.createElement('div', null,
-      React.createElement('h1', null, 'Page Home {{this.state.title}} {{testaaa}}'),
-      React.createElement('button', { onSubmit: () => this.props.tilte = 'Update', title: this.state.title }, 'changer le titre'),
+      React.createElement('h1', {title: 'EHKJZLNLAN'}, `Page Home {{props.title}}`),
+      React.createElement('button', {
+        onClick: () => {
+          this.setState({ number: this.state.number + 1 });
+        }
+      }, 'clicked: '+ this.state.number),
       React.createElement('div', null,
-        React.createElement('p',null, "une ligne"), 
+        React.createElement('p',null, String(this.state.number)), 
         React.createElement('p',null, "une ligne"))); 
   }
 }

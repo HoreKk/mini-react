@@ -7,8 +7,9 @@ let virtualDomInstance = {};
  */
 function createElement(type, props = {}, ...children) {
   if (typeof type === "function" && type.prototype !== 'undefined') {
-    const component = new type();
-    return component.display(props);
+    console.log(props);
+    const component = new type(props);
+    return component.render(props);
   }
 
   return {
@@ -17,7 +18,7 @@ function createElement(type, props = {}, ...children) {
       ...props,
       children: children.map((child) =>
         typeof child === 'string'
-          ? { type: 'STRING_TYPE', props: { nodeTextValue: child,...props, children: [] } }
+          ? { type: 'STRING_TYPE', props: { nodeTextValue: child, ...props, children: [] } }
           : child
       ),
     }
@@ -31,17 +32,58 @@ function createElement(type, props = {}, ...children) {
 function renderDom(element, domElement) {
   let prevVirtualDomNode = virtualDomInstance; 
   virtualDomInstance = reconcile(prevVirtualDomNode, element, domElement);
-  console.log(virtualDomInstance)
+}
+
+
+function isAttribute(element, key) {
+  return !key.startsWith('on') && key !== "children" && typeof element.type !== 'string'
+}
+
+function isEventHandler(key) {
+  return key.startsWith('on');
+}
+
+function updateNode(oldNode, element) {
+  console.log('updateNode');
+  // on remove les anciens events handler
+  Object.keys(oldNode.element.props).filter(isEventHandler).forEach((key) => {
+    oldNode.node.removeEventListener(key.substring(2).toLowerCase(), oldNode.props[key]);
+  })
+
+  // on remove les anciens attribut
+  Object.keys(oldNode.element.props).filter(isAttribute).forEach((key) => {
+    oldNode.node[key] = null;
+  })
+
+  // on rajoute les nouveaux event listener
+  Object.keys(element.props).filter(isEventHandler).forEach((key) => {
+    oldNode.addEventListener(key.substring(2).toLowerCase(), element.props[key]);
+  });
+  
+  // on rajoute les nouveaux attribut
+  Object.keys(element.props).filter(isAttribute).forEach((key) => {
+      oldNode[key] = element.props[key];
+  })
 }
 
 /**
  * @link https://reactjs.org/docs/reconciliation.html
+ * @param {Object} prevVirtualDomNode 
+ * @param {Object} element 
+ * @param {HTMLElement} parentElement 
+ * @returns {Object}
  */
 function reconcile(prevVirtualDomNode, element, parentElement) {
   if (prevVirtualDomNode === null || !Object.keys(prevVirtualDomNode).length) {
     const newVirtualDomNode = createVirtualDomNode(element);
     parentElement.appendChild(newVirtualDomNode.node);
     return newVirtualDomNode;
+  }
+  if (prevVirtualDomNode.element.type !== element.type) {
+    updateNode(prevVirtualDomNode, element);
+    prevVirtualDomNode.childNodes = reconcileChildrenNode(prevVirtualDomNode, element);
+    prevVirtualDomNode.element = element;
+    return prevVirtualDomNode;
   }
   const newVirtualDomNode = createVirtualDomNode(element);
   parentElement.replaceChild(newVirtualDomNode.node, prevVirtualDomNode.node)
@@ -53,18 +95,14 @@ function createVirtualDomNode(element) {
     ? document.createTextNode(parseNodeTextValue(element.props))
     : document.createElement(element.type);
   
-  Object.keys(element.props)
-    .filter((propName) => propName.startsWith('on'))
-    .forEach((propName) => {
-      node.addEventListener(propName.substring(2).toLowerCase(), element.props[propName]);
-    });
+  Object.keys(element.props).filter(isEventHandler).forEach((key) => {
+    node.addEventListener(key.substring(2).toLowerCase(), element.props[key]);
+  });
   
-  Object.keys(element.props)
-    .filter((propName) => !propName.startsWith('on') && propName !== "children" && typeof element.type !== 'string')
-    .forEach((propName) => {
-      node[propName] = element.props[propName];
+  Object.keys(element.props).filter((key) => isAttribute(element, key)).forEach((key) => {
+      node[key] = element.props[key];
     })
-  
+    
   const childElements = element.props.children || [];
   const childNodes = childElements.map(createVirtualDomNode)
   childNodes.forEach(childNode => node.appendChild(childNode.node));
@@ -73,12 +111,6 @@ function createVirtualDomNode(element) {
 }
 
 /**
- * @param {Object} element 
- * @param {HTMLElement} domElement 
- */
-
-/**
- * @param {string} text 
  * @param {Object} props 
  */
 function parseNodeTextValue(props) {
@@ -86,23 +118,29 @@ function parseNodeTextValue(props) {
   let splitText = text.trim().split(' ');
   splitText = splitText.map((elem) => {
     if (elem.match(/\{\{(.+?)\}\}/g)) {
-      return props[elem.replace('{{', '').replace('}}', '').split('.')[1]] || '';
+      return String(props[elem.replace('{{', '').replace('}}', '').split('.')[1]]) || '';
     }
     return elem;
   })
-
   return splitText.join(' ');
 }
 
 export class Component {
-  props = {};
-  state = {};
+
+  // on modifie l'etat et force le rerender pour afficher les nouvelles valeurs
+  setState(newState) {
+    this.state = Object.assign({}, this.state, newState);
+    console.log(virtualDomInstance);
+    this.render();
+  }
 
   constructor(props) {
-    this.props = props;
+    this.props = props || {};
+    this.state = {};
     if (this.constructor === Component) {
         throw new Error("Can't instantiate Component.");
     }
+    console.log('Component', this);
   }
 
   display(newProps) {
@@ -113,7 +151,7 @@ export class Component {
 
   #shouldUpdate(newProps) {
     if(JSON.stringify(newProps) !== JSON.stringify(this.props)) {
-        this.currentProps = newProps;
+        this.props = newProps;
         return true;
     }
     return false;
