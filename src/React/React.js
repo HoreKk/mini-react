@@ -129,12 +129,13 @@ function createVirtualDomNode(element) {
  */
 function parseNodeTextValue(props) {
   const text = String(props.nodeTextValue);
-  let splitText = text.trim().split(' ');
-  splitText = splitText.map((elem) => {
-    if (elem.match(/\{\{(.+?)\}\}/g)) {
-      return String(props[elem.replace('{{', '').replace('}}', '').split('.')[1]]) || '';
+  let splitText = text.trim().split(/\{\{(.*?)\}\}/);
+  
+  splitText = splitText.map(text => {
+    if (text.startsWith('props.')) {
+      return String(props[text.split('.')[1]]) || '';
     }
-    return elem;
+    return String(text);
   })
   return splitText.join(' ');
 }
