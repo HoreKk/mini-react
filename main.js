@@ -13,7 +13,6 @@ class Page1 extends Component {
   }
 
   componentDidMount() {
-    console.log('Page1 mounted');
   }
 
   render() {
@@ -31,17 +30,21 @@ class Page1 extends Component {
   }
 }
 class Page2 extends Component {
-  constructor() {
-    super();
 
+  constructor(props) {
+    super(props);
+    this.state = { position: "---", description: "---", temperature: 0 };
+  }
+
+  componentDidMount() {
     this._getWeather().then(data => {
       console.log(data)
-      alert(`Position : ${data.name}, Description: ${data.weather[0].description}`)
+      this.setState({position: data.name, description: data.weather[0].description, temperature: data.main.temp})
     })
   }
 
   render() {
-    return React.createElement('div', null, React.createElement('h1', null, 'Page About'), React.createElement('p', null, 'Ceci est un texte about'))
+    return React.createElement('div', null, React.createElement('h1', null, 'Page Météo'), React.createElement('p', {position: this.state.position, description: this.state.description, temp: this.state.temperature}, 'Position {{props.position}}, Description: {{props.description}}, Temp: {{props.temp}}'));
   }
 
   _getWeather() {
