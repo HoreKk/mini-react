@@ -1,3 +1,5 @@
+import updateNode from './helpers/updateNode';
+
 let virtualDomInstance = {};
 
 /**
@@ -27,37 +29,6 @@ function renderDom(element, domElement) {
   let prevVirtualDomNode = virtualDomInstance; 
   const nextInstance = reconcile(prevVirtualDomNode, element, domElement);
   virtualDomInstance = nextInstance;
-}
-
-
-function isAttribute(element, key) {
-  return !key.startsWith('on') && key !== "children" && typeof element.type !== 'string'
-}
-
-function isEventHandler(key) {
-  return key.startsWith('on');
-}
-
-function updateNode(oldNode, element) {
-  // on remove les anciens events handler
-  Object.keys(oldNode.element.props).filter(isEventHandler).forEach((key) => {
-    oldNode.node.removeEventListener(key.substring(2).toLowerCase(), oldNode.props[key]);
-  })
-
-  // on remove les anciens attribut
-  Object.keys(oldNode.element.props).filter(isAttribute).forEach((key) => {
-    oldNode.node[key] = null;
-  })
-
-  // on rajoute les nouveaux event listener
-  Object.keys(element.props).filter(isEventHandler).forEach((key) => {
-    oldNode.addEventListener(key.substring(2).toLowerCase(), element.props[key]);
-  });
-  
-  // on rajoute les nouveaux attribut
-  Object.keys(element.props).filter(isAttribute).forEach((key) => {
-      oldNode[key] = element.props[key];
-  })
 }
 
 function reconcileChildren(prevVirtualNode, element) {
@@ -99,6 +70,7 @@ function reconcile(prevVirtualDomNode, element, parentElement) {
     return newVirtualDomNode;
   }
   if (typeof element.type === 'string') {
+    updateNode(prevVirtualDomNode.node, prevVirtualDomNode.element.props, element.props);
     prevVirtualDomNode.childNodes = reconcileChildren(prevVirtualDomNode, element);
     prevVirtualDomNode.element = element;
     const newElem = createVirtualDomNode(prevVirtualDomNode.element);
@@ -113,10 +85,11 @@ function reconcile(prevVirtualDomNode, element, parentElement) {
   prevVirtualDomNode.publicInstance.props = element.props;
   const childElement = prevVirtualDomNode.publicInstance.display();
   const oldChildNode = prevVirtualDomNode.childNode;
-  const childNode = reconcile(oldChildNode, childElement,parentElement)
+  const childNode = reconcile(oldChildNode, childElement, parentElement)
   prevVirtualDomNode.node = childNode.node;
   prevVirtualDomNode.childNode = childNode;
   prevVirtualDomNode.element = element;
+
   return prevVirtualDomNode;
 }
 
@@ -133,15 +106,8 @@ function createVirtualDomNode(element) {
       ? document.createTextNode(parseNodeTextValue(element.props))
       : document.createElement(element.type);
   
-    Object.keys(element.props).filter(isEventHandler).forEach((key) => {
-      node.addEventListener(key.substring(2).toLowerCase(), element.props[key]);
-    });
-  
-    Object.keys(element.props).filter((key) => isAttribute(element, key)).forEach((key) => {
-      node[key] = element.props[key];
-    })
-    
-    const childElements = element.props.children || [];
+      updateNode(node, {}, element.props);
+      const childElements = element.props.children || [];
     const childNodes = childElements.map(createVirtualDomNode)
     childNodes.forEach(childNode => node.appendChild(childNode.node));
 
@@ -154,6 +120,7 @@ function createVirtualDomNode(element) {
   const node = childNode.node;
 
   Object.assign(virtualClassComponentNode, { node, element, childNode, publicInstance })
+  publicInstance.componentDidMount();
   return virtualClassComponentNode;
 }
 
@@ -189,6 +156,8 @@ export class Component {
     }
    
   }
+
+  componentDidMount() {};
 
   display(newProps) {
     if (this.#shouldUpdate(newProps)) {

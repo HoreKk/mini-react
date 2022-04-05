@@ -10,11 +10,14 @@ class Page1 extends Component {
     this.state = { number: 10, input: "", title: "Titre" };
   }
 
+  componentDidMount() {
+    console.log('Page1 mounted');
+  }
+
   render() {
-    console.log(this.state)
     return React.createElement('div', null,
-      React.createElement('h1', {title: this.state.title}, `Page Home {{props.title}}`),
-      React.createElement('input', { value: this.state.input,onChange: (e) => { console.log(e); this.setState({input: e.target.value})}}),
+      React.createElement('h1', {titre: this.state.title, className: this.state.title}, `Page Home {{props.titre}}`),
+      React.createElement('input', { onChange: (e) => { this.setState({input: e.target.value})}}),
       React.createElement('button', {
         onClick: () => {
           this.setState({ title: this.state.input });
