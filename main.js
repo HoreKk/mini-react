@@ -33,18 +33,19 @@ class Page2 extends Component {
 
   constructor(props) {
     super(props);
-    this.state = { position: "---", description: "---", temperature: 0 };
+    this.state = {
+      position: "---", description: "---", temperature: 0, loading: true  };
   }
 
   componentDidMount() {
     this._getWeather().then(data => {
       console.log(data)
-      this.setState({position: data.name, description: data.weather[0].description, temperature: data.main.temp})
+      this.setState({position: data.name, description: data.weather[0].description, temperature: data.main.temp, loading: false})
     })
   }
 
   render() {
-    return React.createElement('div', null, React.createElement('h1', null, 'Page Météo'), React.createElement('p', {position: this.state.position, description: this.state.description, temp: this.state.temperature}, 'Position {{props.position}}, Description: {{props.description}}, Temp: {{props.temp}}'));
+    return React.createElement('div', null, React.createElement('h1', null, 'Page Météo'),React.createElement('p', {loading: this.state.loading, style: this.state.loading? 'color: red' : 'color: green'}, "Loading: {{props.loading}}"),  React.createElement('p', {position: this.state.position, description: this.state.description, temp: this.state.temperature}, 'Position {{props.position}}, Description: {{props.description}}, Temp: {{props.temp}}'));
   }
 
   _getWeather() {
