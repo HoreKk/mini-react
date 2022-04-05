@@ -6,12 +6,6 @@ let virtualDomInstance = {};
  * @param {Array} children 
  */
 function createElement(type, props = {}, ...children) {
-  if (typeof type === "function" && type.prototype !== 'undefined') {
-    console.log(props);
-    const component = new type(props);
-    return component.render(props);
-  }
-
   return {
     type,
     props: {
@@ -31,7 +25,8 @@ function createElement(type, props = {}, ...children) {
  */
 function renderDom(element, domElement) {
   let prevVirtualDomNode = virtualDomInstance; 
-  virtualDomInstance = reconcile(prevVirtualDomNode, element, domElement);
+  const nextInstance = reconcile(prevVirtualDomNode, element, domElement);
+  virtualDomInstance = nextInstance;
 }
 
 
@@ -44,7 +39,6 @@ function isEventHandler(key) {
 }
 
 function updateNode(oldNode, element) {
-  console.log('updateNode');
   // on remove les anciens events handler
   Object.keys(oldNode.element.props).filter(isEventHandler).forEach((key) => {
     oldNode.node.removeEventListener(key.substring(2).toLowerCase(), oldNode.props[key]);
@@ -66,6 +60,22 @@ function updateNode(oldNode, element) {
   })
 }
 
+function reconcileChildren(prevVirtualNode, element) {
+  const node = prevVirtualNode.node;
+  const childNodes = prevVirtualNode.childNodes;
+  const nextChildElements = element.props.children || [];
+  const newChildNodes = [];
+  const count = Math.max(prevVirtualNode.childNodes.length, nextChildElements.length); 
+  
+  for (let i = 0; i < count; i++) {
+    const childElement = nextChildElements[i];
+    const newChildInstance = reconcile(childNodes[i], childElement, node);
+    newChildNodes.push(newChildInstance);
+  }
+
+  return newChildNodes.filter(node => node != null);
+}
+
 /**
  * @link https://reactjs.org/docs/reconciliation.html
  * @param {Object} prevVirtualDomNode 
@@ -79,35 +89,72 @@ function reconcile(prevVirtualDomNode, element, parentElement) {
     parentElement.appendChild(newVirtualDomNode.node);
     return newVirtualDomNode;
   }
+  if (element === null) {
+    prevVirtualDomNode.node.remove();
+    return null;
+  }
   if (prevVirtualDomNode.element.type !== element.type) {
-    updateNode(prevVirtualDomNode, element);
-    prevVirtualDomNode.childNodes = reconcileChildrenNode(prevVirtualDomNode, element);
+    const newVirtualDomNode = createVirtualDomNode(element);
+    prevVirtualDomNode.node.replaceWith(newVirtualDomNode.node);
+    return newVirtualDomNode;
+  }
+  if (typeof element.type === 'string') {
+    prevVirtualDomNode.childNodes = reconcileChildren(prevVirtualDomNode, element);
     prevVirtualDomNode.element = element;
+    const newElem = createVirtualDomNode(prevVirtualDomNode.element);
+    if (prevVirtualDomNode.node.nodeType === 3) {
+      prevVirtualDomNode.node.nodeValue = newElem.node.nodeValue;
+    } else {
+      newElem.node.replaceWith(prevVirtualDomNode.node);
+    }
     return prevVirtualDomNode;
   }
-  const newVirtualDomNode = createVirtualDomNode(element);
-  parentElement.replaceChild(newVirtualDomNode.node, prevVirtualDomNode.node)
-  return newVirtualDomNode;
+  
+  prevVirtualDomNode.publicInstance.props = element.props;
+  const childElement = prevVirtualDomNode.publicInstance.display();
+  const oldChildNode = prevVirtualDomNode.childNode;
+  const childNode = reconcile(oldChildNode, childElement,parentElement)
+  prevVirtualDomNode.node = childNode.node;
+  prevVirtualDomNode.childNode = childNode;
+  prevVirtualDomNode.element = element;
+  return prevVirtualDomNode;
+}
+
+function createPublicInstance(element, internalInstance) {
+  const { type, props } = element; 
+  const publicInstance = new type(props); // the type is a class so we use the *new* keyword
+  publicInstance.setInternalInstance(internalInstance);
+  return publicInstance;
 }
 
 function createVirtualDomNode(element) {
-  const node = element.type === 'STRING_TYPE'
-    ? document.createTextNode(parseNodeTextValue(element.props))
-    : document.createElement(element.type);
+  if (typeof element.type === 'string') {
+    const node = element.type === 'STRING_TYPE'
+      ? document.createTextNode(parseNodeTextValue(element.props))
+      : document.createElement(element.type);
   
-  Object.keys(element.props).filter(isEventHandler).forEach((key) => {
-    node.addEventListener(key.substring(2).toLowerCase(), element.props[key]);
-  });
+    Object.keys(element.props).filter(isEventHandler).forEach((key) => {
+      node.addEventListener(key.substring(2).toLowerCase(), element.props[key]);
+    });
   
-  Object.keys(element.props).filter((key) => isAttribute(element, key)).forEach((key) => {
+    Object.keys(element.props).filter((key) => isAttribute(element, key)).forEach((key) => {
       node[key] = element.props[key];
     })
     
-  const childElements = element.props.children || [];
-  const childNodes = childElements.map(createVirtualDomNode)
-  childNodes.forEach(childNode => node.appendChild(childNode.node));
+    const childElements = element.props.children || [];
+    const childNodes = childElements.map(createVirtualDomNode)
+    childNodes.forEach(childNode => node.appendChild(childNode.node));
 
-  return { node, element, childNodes }
+    return { node, element, childNodes }
+  }
+  const virtualClassComponentNode = {};
+  const publicInstance = createPublicInstance(element, virtualClassComponentNode);
+  const childElement = publicInstance.render();
+  const childNode = createVirtualDomNode(childElement);
+  const node = childNode.node;
+
+  Object.assign(virtualClassComponentNode, { node, element, childNode, publicInstance })
+  return virtualClassComponentNode;
 }
 
 /**
@@ -126,12 +173,12 @@ function parseNodeTextValue(props) {
 }
 
 export class Component {
+  #internalInstance;
 
   // on modifie l'etat et force le rerender pour afficher les nouvelles valeurs
   setState(newState) {
     this.state = Object.assign({}, this.state, newState);
-    console.log(virtualDomInstance);
-    this.render();
+    reconcile(this.#internalInstance, this.#internalInstance.element, this.#internalInstance.node.parentElement);
   }
 
   constructor(props) {
@@ -140,7 +187,7 @@ export class Component {
     if (this.constructor === Component) {
         throw new Error("Can't instantiate Component.");
     }
-    console.log('Component', this);
+   
   }
 
   display(newProps) {
@@ -157,6 +204,10 @@ export class Component {
     return false;
   }
   
+  setInternalInstance(internalInstance) {
+    this.#internalInstance = internalInstance;
+  }
+
   render() {
     throw new Error("render() need to be implemented");
   }

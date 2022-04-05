@@ -7,18 +7,19 @@ class Page1 extends Component {
 
   constructor(props) {
     super(props);
-    this.state = {number: 10};
+    this.state = { number: 10, input: "", title: "Titre" };
   }
 
   render() {
     console.log(this.state)
     return React.createElement('div', null,
-      React.createElement('h1', {title: 'EHKJZLNLAN'}, `Page Home {{props.title}}`),
+      React.createElement('h1', {title: this.state.title}, `Page Home {{props.title}}`),
+      React.createElement('input', { value: this.state.input,onChange: (e) => { console.log(e); this.setState({input: e.target.value})}}),
       React.createElement('button', {
         onClick: () => {
-          this.setState({ number: this.state.number + 1 });
+          this.setState({ title: this.state.input });
         }
-      }, 'clicked: '+ this.state.number),
+      }, 'Click me'),
       React.createElement('div', null,
         React.createElement('p',null, String(this.state.number)), 
         React.createElement('p',null, "une ligne"))); 
