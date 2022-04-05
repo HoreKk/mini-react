@@ -1,3 +1,5 @@
+import { ReactError } from './exceptions/ReactError';
+import type_check from './helpers/typecheck';
 import updateNode from './helpers/updateNode';
 
 let virtualDomInstance = {};
@@ -8,6 +10,9 @@ let virtualDomInstance = {};
  * @param {Array} children 
  */
 function createElement(type, props = {}, ...children) {
+  if(!type_check(props, 'object')) {
+    throw new ReactError(`props need to be an object, received: ${props}`)
+  }
   return {
     type,
     props: {
